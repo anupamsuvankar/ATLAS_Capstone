@@ -1,25 +1,29 @@
 package com.bank.service;
 
 import com.bank.domain.Account;
-import com.bank.domain.Transaction;
-import com.bank.enums.TransactionStatus;
+import com.bank.repository.AuditLogRepository;
+import com.bank.repository.TransactionRepository;
+
 import java.math.BigDecimal;
 
 public class DepositService {
-    private AuditService auditService;
+    private final AuditService auditService;
+    private final AuditLogRepository auditRepo = new AuditLogRepository();
+    private final TransactionRepository txnRepo = new TransactionRepository();
 
     public DepositService(AuditService auditService) {
         this.auditService = auditService;
     }
 
-    public Transaction deposit(Account account, BigDecimal amount, String actor) {
+    public void deposit(Account account, BigDecimal amount, String actor) {
         BigDecimal before = account.getBalance();
-        account.credit(amount);
+        account.setBalance(before.add(amount));
 
-        Transaction tx = new Transaction(null, account.getAccountId(), amount, account.getCurrency());
-        tx.setStatus(TransactionStatus.SUCCESS);
+        // In-memory audit
+        auditService.log(actor, "DEPOSIT", before, account.getBalance());
 
-        auditService.log(tx, actor, "DEPOSIT", before, account.getBalance());
-        return tx;
+        // DB persistence
+        auditRepo.insertAuditLog(actor, "DEPOSIT", before.doubleValue(), account.getBalance().doubleValue());
+        txnRepo.insertTransaction(account.getAccountId(), null, amount.doubleValue(), "DEPOSIT");
     }
 }

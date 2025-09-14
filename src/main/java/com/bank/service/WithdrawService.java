@@ -1,30 +1,31 @@
 package com.bank.service;
 
 import com.bank.domain.Account;
-import com.bank.domain.Transaction;
-import com.bank.enums.TransactionStatus;
+import com.bank.repository.AuditLogRepository;
+import com.bank.repository.TransactionRepository;
+
 import java.math.BigDecimal;
 
 public class WithdrawService {
-    private AuditService auditService;
+    private final AuditService auditService;
+    private final AuditLogRepository auditRepo = new AuditLogRepository();
+    private final TransactionRepository txnRepo = new TransactionRepository();
 
     public WithdrawService(AuditService auditService) {
         this.auditService = auditService;
     }
 
-    public Transaction withdraw(Account account, BigDecimal amount, String actor) {
+    public void withdraw(Account account, BigDecimal amount, String actor) {
         BigDecimal before = account.getBalance();
-        try {
-            account.debit(amount);
-            Transaction tx = new Transaction(account.getAccountId(), null, amount, account.getCurrency());
-            tx.setStatus(TransactionStatus.SUCCESS);
-            auditService.log(tx, actor, "WITHDRAW", before, account.getBalance());
-            return tx;
-        } catch (IllegalArgumentException e) {
-            Transaction tx = new Transaction(account.getAccountId(), null, amount, account.getCurrency());
-            tx.setStatus(TransactionStatus.FAILED);
-            auditService.log(tx, actor, "WITHDRAW-FAILED", before, account.getBalance());
-            return tx;
+        if (before.compareTo(amount) >= 0) {
+            account.setBalance(before.subtract(amount));
+
+            auditService.log(actor, "WITHDRAW", before, account.getBalance());
+
+            auditRepo.insertAuditLog(actor, "WITHDRAW", before.doubleValue(), account.getBalance().doubleValue());
+            txnRepo.insertTransaction(account.getAccountId(), null, amount.doubleValue(), "WITHDRAW");
+        } else {
+            System.out.println("Insufficient funds for withdrawal.");
         }
     }
 }
