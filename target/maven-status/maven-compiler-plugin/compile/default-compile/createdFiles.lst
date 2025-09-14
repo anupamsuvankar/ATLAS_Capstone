@@ -1,0 +1,12 @@
+com\bank\App.class
+com\bank\domain\Customer.class
+com\bank\service\AuditService.class
+com\bank\domain\Transaction.class
+com\bank\enums\TransactionStatus.class
+com\bank\service\DepositService.class
+com\bank\enums\AccountStatus.class
+com\bank\service\WithdrawService.class
+com\bank\service\TransferService.class
+com\bank\domain\Account.class
+com\bank\domain\AuditLog.class
+com\bank\enums\KycStatus.class
