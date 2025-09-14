@@ -1,10 +1,12 @@
 package com.bank.service;
 
 import com.bank.domain.Account;
+import com.bank.domain.Transaction;
 import com.bank.repository.AuditLogRepository;
 import com.bank.repository.TransactionRepository;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class DepositService {
     private final AuditService auditService;
@@ -17,13 +19,20 @@ public class DepositService {
 
     public void deposit(Account account, BigDecimal amount, String actor) {
         BigDecimal before = account.getBalance();
-        account.setBalance(before.add(amount));
 
-        // In-memory audit
-        auditService.log(actor, "DEPOSIT", before, account.getBalance());
+        // update in-memory balance (use credit instead of setBalance)
+        account.credit(amount);
 
-        // DB persistence
-        auditRepo.insertAuditLog(actor, "DEPOSIT", before.doubleValue(), account.getBalance().doubleValue());
+        BigDecimal after = account.getBalance();
+
+        // create transaction
+        Transaction txn = new Transaction(account.getAccountId(), null, amount, "DEPOSIT");
+
+        // in-memory audit
+        auditService.log(txn, actor, "DEPOSIT", before, after);
+
+        // persist to DB
+        auditRepo.insertAuditLog(actor, "DEPOSIT", before.doubleValue(), after.doubleValue());
         txnRepo.insertTransaction(account.getAccountId(), null, amount.doubleValue(), "DEPOSIT");
     }
 }

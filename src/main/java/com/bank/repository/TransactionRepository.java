@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class TransactionRepository {
 
-    public void insertTransaction(String fromAcc, String toAcc, double amount, String type) {
+    public void insertTransaction(UUID fromAcc, UUID toAcc, double amount, String type) {
         String sql = "INSERT INTO transaction (transaction_id, from_account_id, to_account_id, amount, type) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -22,5 +22,10 @@ public class TransactionRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void insertTransaction(UUID accountId, UUID accountId2, double doubleValue, String type) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'insertTransaction'");
     }
 }

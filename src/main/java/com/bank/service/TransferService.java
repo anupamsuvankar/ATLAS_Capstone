@@ -1,6 +1,7 @@
 package com.bank.service;
 
 import com.bank.domain.Account;
+import com.bank.domain.Transaction;
 import com.bank.repository.AuditLogRepository;
 import com.bank.repository.TransactionRepository;
 
@@ -17,20 +18,27 @@ public class TransferService {
 
     public void transfer(Account from, Account to, BigDecimal amount, String actor) {
         BigDecimal beforeFrom = from.getBalance();
+
         if (beforeFrom.compareTo(amount) >= 0) {
-            from.setBalance(beforeFrom.subtract(amount));
-            to.setBalance(to.getBalance().add(amount));
+            from.debit(amount);
+            to.credit(amount);
 
-            auditService.log(actor, "TRANSFER-DEBIT", beforeFrom, from.getBalance());
-            auditService.log(actor, "TRANSFER-CREDIT", BigDecimal.ZERO, to.getBalance());
+            BigDecimal afterFrom = from.getBalance();
+            BigDecimal afterTo = to.getBalance();
 
-            auditRepo.insertAuditLog(actor, "TRANSFER-DEBIT", beforeFrom.doubleValue(), from.getBalance().doubleValue());
-            auditRepo.insertAuditLog(actor, "TRANSFER-CREDIT", 0, to.getBalance().doubleValue());
+            Transaction debitTxn = new Transaction(from.getAccountId(), to.getAccountId(), amount, "TRANSFER-DEBIT");
+            Transaction creditTxn = new Transaction(from.getAccountId(), to.getAccountId(), amount, "TRANSFER-CREDIT");
+
+            auditService.log(debitTxn, actor, "TRANSFER-DEBIT", beforeFrom, afterFrom);
+            auditService.log(creditTxn, actor, "TRANSFER-CREDIT", BigDecimal.ZERO, afterTo);
+
+            auditRepo.insertAuditLog(actor, "TRANSFER-DEBIT", beforeFrom.doubleValue(), afterFrom.doubleValue());
+            auditRepo.insertAuditLog(actor, "TRANSFER-CREDIT", 0, afterTo.doubleValue());
 
             txnRepo.insertTransaction(from.getAccountId(), to.getAccountId(), amount.doubleValue(), "TRANSFER-DEBIT");
             txnRepo.insertTransaction(from.getAccountId(), to.getAccountId(), amount.doubleValue(), "TRANSFER-CREDIT");
         } else {
-            System.out.println("Insufficient funds for transfer.");
+            System.out.println("❌ Insufficient funds for transfer.");
         }
     }
 }

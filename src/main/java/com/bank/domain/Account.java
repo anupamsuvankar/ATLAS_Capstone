@@ -19,11 +19,25 @@ public class Account {
         this.status = AccountStatus.ACTIVE;
     }
 
-    public UUID getAccountId() { return accountId; }
-    public UUID getCustomerId() { return customerId; }
-    public BigDecimal getBalance() { return balance; }
-    public String getCurrency() { return currency; }
-    public AccountStatus getStatus() { return status; }
+    public UUID getAccountId() {
+        return accountId;
+    }
+
+    public UUID getCustomerId() {
+        return customerId;
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public AccountStatus getStatus() {
+        return status;
+    }
 
     public void debit(BigDecimal amount) {
         if (balance.compareTo(amount) < 0) {
@@ -36,4 +50,3 @@ public class Account {
         balance = balance.add(amount);
     }
 }
-

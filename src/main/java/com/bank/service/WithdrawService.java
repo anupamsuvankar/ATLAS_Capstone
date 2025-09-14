@@ -1,6 +1,7 @@
 package com.bank.service;
 
 import com.bank.domain.Account;
+import com.bank.domain.Transaction;
 import com.bank.repository.AuditLogRepository;
 import com.bank.repository.TransactionRepository;
 
@@ -17,15 +18,19 @@ public class WithdrawService {
 
     public void withdraw(Account account, BigDecimal amount, String actor) {
         BigDecimal before = account.getBalance();
+
         if (before.compareTo(amount) >= 0) {
-            account.setBalance(before.subtract(amount));
+            account.debit(amount);
+            BigDecimal after = account.getBalance();
 
-            auditService.log(actor, "WITHDRAW", before, account.getBalance());
+            Transaction txn = new Transaction(account.getAccountId(), null, amount, "WITHDRAW");
 
-            auditRepo.insertAuditLog(actor, "WITHDRAW", before.doubleValue(), account.getBalance().doubleValue());
+            auditService.log(txn, actor, "WITHDRAW", before, after);
+
+            auditRepo.insertAuditLog(actor, "WITHDRAW", before.doubleValue(), after.doubleValue());
             txnRepo.insertTransaction(account.getAccountId(), null, amount.doubleValue(), "WITHDRAW");
         } else {
-            System.out.println("Insufficient funds for withdrawal.");
+            System.out.println("❌ Insufficient funds for withdrawal.");
         }
     }
 }
