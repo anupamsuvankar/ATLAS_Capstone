@@ -8,7 +8,6 @@ import com.bank.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -49,42 +48,41 @@ public class BankingSystemTest {
 
     @Test
     void testDepositIncreasesBalance() {
-        depositService.deposit(aliceAcc, BigDecimal.valueOf(500), "Alice");
-        assertEquals(BigDecimal.valueOf(500), aliceAcc.getBalance());
+        depositService.deposit(aliceAcc, 500, "Alice");
+        assertEquals(500, aliceAcc.getBalance());
     }
 
     @Test
     void testWithdrawDecreasesBalance() {
-        depositService.deposit(aliceAcc, BigDecimal.valueOf(300), "Alice");
-        withdrawService.withdraw(aliceAcc, BigDecimal.valueOf(100), "Alice");
-        assertEquals(BigDecimal.valueOf(200), aliceAcc.getBalance());
+        depositService.deposit(aliceAcc, 300, "Alice");
+        withdrawService.withdraw(aliceAcc, 100, "Alice");
+        assertEquals(200, aliceAcc.getBalance());
     }
 
     @Test
     void testWithdrawFailsIfInsufficientFunds() {
-        depositService.deposit(aliceAcc, BigDecimal.valueOf(50), "Alice");
-        withdrawService.withdraw(aliceAcc, BigDecimal.valueOf(200), "Alice");
-        // Balance should remain unchanged
-        assertEquals(BigDecimal.valueOf(50), aliceAcc.getBalance());
+        depositService.deposit(aliceAcc, 50, "Alice");
+        withdrawService.withdraw(aliceAcc, 200, "Alice");
+        assertEquals(50, aliceAcc.getBalance());
     }
 
     @Test
     void testTransferMovesFundsBetweenAccounts() {
-        depositService.deposit(aliceAcc, BigDecimal.valueOf(400), "Alice");
-        transferService.transfer(aliceAcc, bobAcc, BigDecimal.valueOf(150), "Alice");
+        depositService.deposit(aliceAcc, 400, "Alice");
+        transferService.transfer(aliceAcc, bobAcc, 150, "Alice");
 
-        assertEquals(BigDecimal.valueOf(250), aliceAcc.getBalance());
-        assertEquals(BigDecimal.valueOf(150), bobAcc.getBalance());
+        assertEquals(250, aliceAcc.getBalance());
+        assertEquals(150, bobAcc.getBalance());
     }
 
     @Test
     void testTransferFailsIfInsufficientFunds() {
-        depositService.deposit(aliceAcc, BigDecimal.valueOf(100), "Alice");
-        transferService.transfer(aliceAcc, bobAcc, BigDecimal.valueOf(300), "Alice");
+        depositService.deposit(aliceAcc, 100, "Alice");
+        transferService.transfer(aliceAcc, bobAcc, 300, "Alice");
 
         // Balances should remain the same
-        assertEquals(BigDecimal.valueOf(100), aliceAcc.getBalance());
-        assertEquals(BigDecimal.ZERO, bobAcc.getBalance());
+        assertEquals(100, aliceAcc.getBalance());
+        assertEquals(0, bobAcc.getBalance());
     }
 }
 
