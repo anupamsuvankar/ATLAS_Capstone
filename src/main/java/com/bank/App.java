@@ -1,31 +1,35 @@
 package com.bank;
 
-import com.bank.domain.Customer;
-import com.bank.domain.Account;
-import com.bank.enums.KycStatus;
-import com.bank.service.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.UUID;
 
-import java.math.BigDecimal;
+import com.bank.domain.Account;
+import com.bank.domain.Customer;
+import com.bank.enums.KycStatus;
+import com.bank.repository.AccountRepository;
+import com.bank.repository.CustomerRepository;
+import com.bank.service.DepositService;
 
 public class App {
-    public static void main(String[] args) {
-        AuditService auditService = new AuditService();
-        DepositService depositService = new DepositService(auditService);
-        WithdrawService withdrawService = new WithdrawService(auditService);
-        TransferService transferService = new TransferService(auditService);
+    public static void main(String[] args) throws SQLException {
+        Connection conn = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/atlas_capstone", "root", "anupam1234"
+        );
 
-        Customer alice = new Customer("Alice", "alice@example.com", KycStatus.VERIFIED);
-        Customer bob = new Customer("Bob", "bob@example.com", KycStatus.VERIFIED);
+        CustomerRepository customerRepo = new CustomerRepository(conn);
+        AccountRepository accountRepo = new AccountRepository(conn);
+        DepositService depositService = new DepositService(accountRepo);
 
-        Account aliceAcc = new Account(alice.getCustomerId(), "USD");
-        Account bobAcc = new Account(bob.getCustomerId(), "USD");
+        Customer alice = new Customer("Alice", "alice@gmnail.com", KycStatus.PENDING);
+        customerRepo.insertCustomer(alice);
 
-        System.out.println("Initial Balances: Alice=" + aliceAcc.getBalance() + ", Bob=" + bobAcc.getBalance());
+        Account aliceAccount = new Account(UUID.randomUUID(), customerRepo.getCustomerId(alice.getEmail()),0 , "INR");
+        accountRepo.insertAccount(aliceAccount);
 
-        depositService.deposit(aliceAcc, BigDecimal.valueOf(500), "Alice");
-        withdrawService.withdraw(aliceAcc, BigDecimal.valueOf(100), "Alice");
-        transferService.transfer(aliceAcc, bobAcc, BigDecimal.valueOf(200), "Alice");
+        depositService.deposit(aliceAccount, 500, "Alice");
 
-        System.out.println("Final Balances: Alice=" + aliceAcc.getBalance() + ", Bob=" + bobAcc.getBalance());
+        System.out.println("Deposit successful. New balance: " + aliceAccount.getBalance());
     }
 }

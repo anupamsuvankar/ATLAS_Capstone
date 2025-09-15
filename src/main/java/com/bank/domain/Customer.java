@@ -16,8 +16,19 @@ public class Customer {
         this.kycStatus = kycStatus;
     }
 
-    public UUID getCustomerId() { return customerId; }
-    public String getName() { return name; }
-    public String getEmail() { return email; }
-    public KycStatus getKycStatus() { return kycStatus; }
+    public UUID getCustomerId() {
+        return customerId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public KycStatus getKycStatus() {
+        return kycStatus;
+    }
 }

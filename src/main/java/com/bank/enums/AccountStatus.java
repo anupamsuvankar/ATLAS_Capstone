@@ -1,5 +1,5 @@
 package com.bank.enums;
 
 public enum AccountStatus {
-    ACTIVE, BLOCKED, CLOSED
+    ACTIVE, BLOCKED, CLOSED, PENDING
 }
